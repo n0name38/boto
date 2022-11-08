@@ -12,6 +12,13 @@
 %{!?py2_install: %global py2_install %py_install}
 %endif
 
+%if 0%{?rhel} && 0%{?rhel} >= 8
+%bcond_with python2
+%bcond_without python3
+%else
+%bcond_without python2
+%bcond_with python3
+%endif
 
 %if 0%{?rhel} && 0%{?rhel} <= 6
 %{!?__python2: %global __python2 /usr/bin/python2}
@@ -49,19 +56,22 @@ License:        MIT
 Group:          Development/Languages
 URL:            https://github.com/c2devel/boto
 Source0:        https://pypi.io/packages/source/b/boto/boto-%{version}.tar.gz
-
+%if %{with python2}
 BuildRequires:  python2-devel
 BuildRequires:  python-setuptools
+%endif
 %if %{with python3}
 BuildRequires:  python%{python3_pkgversion}-devel
 BuildRequires:  python%{python3_pkgversion}-setuptools
 %endif  # with python3
 
 %if %{with unittests}
+%if %{with python2}
 BuildRequires:  python-httpretty
 BuildRequires:  python-mock
 BuildRequires:  python-nose
 BuildRequires:  python-requests
+%endif  # with python2
 %if %{with python3}
 BuildRequires:  python36-httpretty
 BuildRequires:  python36-mock
@@ -75,7 +85,7 @@ BuildArch:      noarch
 %description
 %{descr}
 
-
+%if %{with python2}
 %package -n python2-%{pkgname}
 Summary:        %{sum}
 Requires:       python-requests
@@ -88,7 +98,7 @@ Obsoletes:      python-boto <= 1441065600:2.46.1-CROC14%{?dist}
 
 %description -n python2-%{pkgname}
 %{descr}
-
+%endif
 
 %if %{with python3}
 %package -n python%{python3_pkgversion}-%{pkgname}
@@ -107,14 +117,18 @@ Requires:       python%{python3_pkgversion}-requests
 
 
 %build
+%if %{with python2}
 %{py2_build}
+%endif
 %if %{with python3}
 %{py3_build}
 %endif  # with python3
 
 
 %install
+%if %{with python2}
 %{py2_install}
+%endif
 
 %if %{with python3}
 %{py3_install}
@@ -125,18 +139,21 @@ rm -f %buildroot/%{_bindir}/*
 
 %check
 %if %{with unittests}
+%if %{with python2}
 %{__python2} tests/test.py default
+%endif
 %if %{with python3}
 %{__python3} tests/test.py default
 %endif  # with python3
 %endif  # with unittests
 
-
+%if %{with python2}
 %files -n python2-%{pkgname}
 %defattr(-,root,root,-)
 %{python2_sitelib}/boto
 %{python2_sitelib}/boto-%{version}-*.egg-info
 %doc LICENSE README.rst
+%endif
 
 %if %{with python3}
 %files -n python%{python3_pkgversion}-%{pkgname}
